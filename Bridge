@@ -1,0 +1,74 @@
+#include <iostream>
+using namespace std;
+
+class WindowImplementation {
+public:
+    virtual void D1() = 0;
+    virtual void D2() = 0;
+};
+
+class WindowBordered : public WindowImplementation {
+private:
+    string type = "bordered";
+public:
+    void D1() override{
+        cout << "WindowBorderedMethodFirst" << endl;
+    }
+    void D2() override{
+        cout << "WindowBorderedMethodSecond" << endl;
+    }
+};
+
+class WindowColored : public WindowImplementation {
+private:
+    string type = "colored";
+public:
+    void D1() override {
+        cout << "WindowColoredMethodFirst" << endl;
+    }
+    void D2() override {
+        cout << "WindowColoredMethodSecond" << endl;
+    }
+};
+
+class Window {
+protected:
+    WindowImplementation* impl;
+
+public:
+    Window() : impl(new WindowColored()) {}
+    void D1() {
+        impl->D1();
+        change_implementation();
+    }
+
+    void D2() {
+        impl->D2();
+        change_implementation();
+    }
+
+    void change_implementation() {
+        if (impl != nullptr && dynamic_cast<WindowBordered*>(impl)) {
+            WindowImplementation* new_impl = new WindowColored();
+            delete impl;
+            impl = new_impl;
+        }
+        else if (impl != nullptr && dynamic_cast<WindowColored*>(impl)) {
+            WindowImplementation* new_impl = new WindowBordered();
+            delete impl;
+            impl = new_impl;
+        }
+    }
+
+
+};
+
+int main()
+{
+    Window* window = new Window();
+    window->D1();
+    window->D1();
+    window->D2();
+    window->D2();
+}
+
