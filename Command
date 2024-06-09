@@ -1,0 +1,116 @@
+#include <iostream>
+#include <stack>
+#include <conio.h>
+#include <map>
+using namespace std;
+class IShape {
+public:
+    virtual void move(int _dx, int _dy) = 0;
+    virtual ~IShape() {}
+};
+
+class Circle: public IShape {
+private:
+    int x, y, r;
+public:
+    Circle(int _x, int _y, int _r) : x(_x), y(_y), r(_r){}
+    void move(int _dx, int _dy) override {
+        x += _dx;
+        y += _dy;
+        cout << "Circle corrds:" << x << " " << y << endl;
+    }
+   
+};
+
+class Rectangle : public IShape {
+private:
+    int x, y, width, height;
+public:
+    Rectangle(int _x, int _y, int _width, int _height) : x(_x), y(_y),width(_width), height(_height) {}
+    void move(int _dx, int _dy) override {
+        x += _dx;
+        y += _dy;
+        cout << "Rectangle moved to" << x << " " << y << endl;
+    }
+};
+
+class Command {
+public:
+    virtual void execute(IShape *_shape) = 0;
+    virtual void unexecute() = 0;
+    virtual Command* clone() = 0;
+    virtual ~Command() {};
+};
+
+class MoveCommand : public Command {
+private:
+    int _dx, _dy;
+    IShape* shape;
+public:
+    MoveCommand(int dx, int dy): _dx(dx), _dy(dy), shape(nullptr){}
+    void execute(IShape* _shape) override {
+        if (_shape != nullptr) {
+            shape = _shape;
+        }
+        shape->move(_dx, _dy);
+    }
+    void unexecute() override {
+        if (shape != nullptr) {
+            shape->move(-_dx, -_dy);
+        }   
+    }
+    Command* clone() {
+        return new MoveCommand(*this);
+    }
+
+};
+
+int main()
+{
+    Circle* c = new Circle(2, 3, 5);
+    char k;
+    map<char, Command*> commands;
+    stack<Command*> commands_stack;
+    commands['a'] = new MoveCommand(-5, 0);
+    commands['w'] = new MoveCommand(0, 5);
+    commands['s'] = new MoveCommand(0, -5);
+    commands['d'] = new MoveCommand(5, 0);
+    do {
+        k = _getch();
+        if (k == 'w') {
+            Command* new_command = commands['w']->clone();
+            commands_stack.push(new_command);
+            new_command->execute(c);
+        }
+        if (k == 'a') {
+            Command* new_command = commands['a']->clone();
+            commands_stack.push(new_command);
+            new_command->execute(c);
+        }
+        if (k == 'd') {
+            Command* new_command = commands['d']->clone();
+            commands_stack.push(new_command);
+            new_command->execute(c);
+        }
+        if (k == 's') {
+            Command* new_command = commands['s']->clone();
+            commands_stack.push(new_command);
+            new_command->execute(c);
+        }
+        if (k == 'z' && !commands_stack.empty()) {
+            Command* last_command = commands_stack.top();
+            last_command->unexecute();
+            commands_stack.pop();
+            delete last_command;
+        }
+
+
+
+    } while (k != 27);
+    delete c;
+    delete commands['a'];
+    delete commands['d'];
+    delete commands['s'];
+    delete commands['w'];
+}
+
